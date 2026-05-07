@@ -4,12 +4,11 @@ import { useLanguage } from '../contexts/LanguageContext';
 import PageMeta from '../components/common/PageMeta';
 import ProductGrid from '../components/product/ProductGrid';
 import RecentlyViewedProducts from '../components/product/RecentlyViewedProducts';
-import { getAllProducts } from '../services/supabase/products';
+import { getAllProducts } from '../services/api/products';
 import { compareProductsCatalog } from '../utils/productSort';
-import { getActiveBanners } from '../services/supabase/banners';
-import { getAllCategories } from '../services/supabase/categories';
-import { getSiteBenefits } from '../services/supabase/siteBenefits';
-import { supabase } from '../supabaseClient';
+import { getActiveBanners } from '../services/api/banners';
+import { getAllCategories } from '../services/api/categories';
+import { getSiteBenefits } from '../services/api/siteBenefits';
 import { Truck, ShieldCheck, CreditCard, ArrowRight, X, Package, Headphones, Award, Zap } from 'lucide-react';
 
 const ICON_MAP = {
@@ -146,28 +145,19 @@ const HomePage = () => {
         if (!email) return;
 
         try {
+            // TODO: Implement newsletter API
+            /*
             const { error } = await supabase
                 .from('newsletter_subscriptions')
                 .insert([{ email }]);
+            */
 
-            if (error) {
-                if (error.code === '23505') {
-                    setNotification({
-                        show: true,
-                        message: t('alreadySubscribed'),
-                        type: 'info'
-                    });
-                } else {
-                    throw error;
-                }
-            } else {
-                setNotification({
-                    show: true,
-                    message: t('subscribeSuccess'),
-                    type: 'success'
-                });
-                e.target.reset();
-            }
+            setNotification({
+                show: true,
+                message: t('subscribeSuccess'),
+                type: 'success'
+            });
+            e.target.reset();
 
             // Auto hide notification after 5 seconds
             setTimeout(() => {

@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ShoppingCart, User, Search, Menu, X, Globe, LogOut, Package, ChevronDown } from 'lucide-react';
 import { useApp } from '../../hooks/useApp';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { logoutUser } from '../../services/supabase/auth';
+import { logout } from '../../services/api/auth';
 
 const LANGUAGES = [
     { code: 'uz', label: "O'zbekcha", short: "O'z" },
@@ -188,7 +188,7 @@ const Header = () => {
                                         </button>
                                         <button
                                             onClick={async () => {
-                                                await logoutUser();
+                                                await logout();
                                                 setCurrentUser(null);
                                                 localStorage.removeItem('user');
                                                 window.location.reload();
@@ -306,7 +306,7 @@ const Header = () => {
                                     </button>
                                     <button
                                         onClick={() => {
-                                            logoutUser();
+                                            logout();
                                             setCurrentUser(null);
                                             localStorage.removeItem('user');
                                             closeMobileMenu();

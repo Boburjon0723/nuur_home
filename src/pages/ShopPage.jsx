@@ -4,8 +4,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import PageMeta from '../components/common/PageMeta';
 import ProductGrid from '../components/product/ProductGrid';
 import Sidebar from '../components/layout/Sidebar'; // Reusing existing Sidebar logic but wrapping it
-import { getAllProducts } from '../services/supabase/products';
-import { getAllCategories } from '../services/supabase/categories';
+import { getAllProducts } from '../services/api/products';
+import { getAllCategories } from '../services/api/categories';
 import { sortProductsForDisplay } from '../utils/productSort';
 import Breadcrumb from '../components/common/Breadcrumb';
 import { Filter, X, Search } from 'lucide-react';

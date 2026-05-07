@@ -3,12 +3,17 @@ import { MapPin, Phone, Mail, Clock, Send, MessageSquare, ExternalLink, QrCode, 
 import { useLanguage } from '../contexts/LanguageContext';
 import { useApp } from '../hooks/useApp';
 import PageMeta from '../components/common/PageMeta';
-import { createContactMessage } from '../services/supabase/messages';
+import { createContactMessage } from '../services/api/messages';
 import { getContactMapEmbedUrl, getContactMapExternalUrl } from '../utils/contactMap';
 
 const ContactPage = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const { settings } = useApp(); // Get settings from context
+
+    // Helper to get localized value
+    const getVal = (key, fallbackValue) => {
+        return settings?.[`${key}_${language}`] || settings?.[key] || fallbackValue;
+    };
 
     const [formData, setFormData] = useState({
         name: '',
@@ -81,7 +86,7 @@ const ContactPage = () => {
         {
             icon: MapPin,
             title: t('address') || 'Address',
-            content: settings?.address || 'Toshkent, Amir Temur 123',
+            content: getVal('address', 'Toshkent, Amir Temur 123'),
             link: '#'
         },
         {
@@ -99,7 +104,7 @@ const ContactPage = () => {
         {
             icon: Clock,
             title: t('workingHours') || 'Working Hours',
-            content: settings?.work_hours || 'Mon - Sat: 9:00 - 18:00',
+            content: getVal('work_hours', 'Mon - Sat: 9:00 - 18:00'),
             link: null
         }
     ];

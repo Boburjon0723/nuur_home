@@ -4,7 +4,7 @@ import { useApp } from '../hooks/useApp';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PageMeta from '../components/common/PageMeta';
-import { createOrder } from '../services/supabase/orders';
+import { createOrder } from '../services/api/orders';
 import { FLASH_ORDER_OK_KEY } from '../constants/storageKeys';
 
 const CartPage = () => {

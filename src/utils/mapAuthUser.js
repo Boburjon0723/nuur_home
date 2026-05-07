@@ -5,7 +5,7 @@
 export function mapAuthUserToAppUser(authUser) {
     if (!authUser) return null;
     const meta = authUser.user_metadata || {};
-    const fromMetaName = meta.name ?? meta.display_name ?? meta.full_name;
+    const fromMetaName = meta.fullname ?? meta.name ?? meta.display_name ?? meta.full_name ?? authUser.fullname;
     const name =
         fromMetaName != null && String(fromMetaName).trim() !== ''
             ? String(fromMetaName).trim()

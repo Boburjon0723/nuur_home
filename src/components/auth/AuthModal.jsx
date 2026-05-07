@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Lock, User as UserIcon, ArrowRight, Phone, Eye, EyeOff } from 'lucide-react';
 import { useApp } from '../../hooks/useApp';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { loginUser, registerUser, resetPassword } from '../../services/supabase/auth';
+import { login, register, resetPassword } from '../../services/api/auth';
 import { AUTH_RETURN_PATH_KEY } from '../../constants/storageKeys';
 import { mapAuthUserToAppUser } from '../../utils/mapAuthUser';
 
@@ -154,9 +154,15 @@ const AuthModal = () => {
             const fullPhone = formData.phoneCode + formData.phone.replace(/\D/g, '');
             let result;
             if (isLogin) {
-                result = await loginUser(formData.email.trim(), formData.password);
+                result = await login(formData.email.trim(), formData.password);
             } else {
-                result = await registerUser(formData.password, formData.name, fullPhone, formData.country, formData.email);
+                result = await register({
+                    email: formData.email.trim(),
+                    password: formData.password,
+                    name: formData.name,
+                    phone: fullPhone,
+                    address: '' // Hozircha bo'sh, profil orqali to'ldirilishi mumkin
+                });
             }
 
             if (result.success) {

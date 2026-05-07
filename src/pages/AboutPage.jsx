@@ -9,17 +9,39 @@ import MissionImageCarousel from '../components/about/MissionImageCarousel';
 import { getMissionImageUrls } from '../utils/aboutMissionImages';
 
 const AboutPage = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const { settings } = useApp();
 
     const missionUrls = getMissionImageUrls(settings);
     const missionDisplayUrls = missionUrls.length > 0 ? missionUrls : [aboutCurtainImage];
 
+    // Helper to get localized value
+    const getVal = (key, fallbackKey) => {
+        const val = settings?.[`${key}_${language}`] || settings?.[key] || settings?.[fallbackKey] || '';
+        return val;
+    };
+
     const stats = [
-        { icon: Users, label: settings?.stat1_label || t('happyCustomers') || 'Happy Customers', value: settings?.stat1_value || '10,000+' },
-        { icon: Award, label: settings?.stat2_label || t('yearsExperience') || 'Years Experience', value: settings?.stat2_value || '15+' },
-        { icon: TrendingUp, label: settings?.stat3_label || t('productsAvailable') || 'Products', value: settings?.stat3_value || '5,000+' },
-        { icon: Heart, label: settings?.stat4_label || t('positiveReviews') || 'Positive Reviews', value: settings?.stat4_value || '98%' }
+        { 
+            icon: Users, 
+            label: settings?.[`stat1_label_${language}`] || settings?.stat1_label || t('happyCustomers') || 'Happy Customers', 
+            value: settings?.stat1_value || '10,000+' 
+        },
+        { 
+            icon: Award, 
+            label: settings?.[`stat2_label_${language}`] || settings?.stat2_label || t('yearsExperience') || 'Years Experience', 
+            value: settings?.stat2_value || '15+' 
+        },
+        { 
+            icon: TrendingUp, 
+            label: settings?.[`stat3_label_${language}`] || settings?.stat3_label || t('productsAvailable') || 'Products', 
+            value: settings?.stat3_value || '5,000+' 
+        },
+        { 
+            icon: Heart, 
+            label: settings?.[`stat4_label_${language}`] || settings?.stat4_label || t('positiveReviews') || 'Positive Reviews', 
+            value: settings?.stat4_value || '98%' 
+        }
     ];
 
     return (
@@ -37,10 +59,10 @@ const AboutPage = () => {
                 </div>
                 <div className="container mx-auto relative z-10 text-center max-w-3xl">
                     <h1 className="text-4xl md:text-5xl font-display font-bold mb-6">
-                        {settings?.about_hero_title || t('aboutTitle') || 'We bring elegance to your home'}
+                        {getVal('about_hero_title', 'aboutTitle') || 'We bring elegance to your home'}
                     </h1>
                     <p className="text-xl text-white/80 leading-relaxed">
-                        {settings?.about_hero_subtitle || t('aboutSubtitle') || 'Specializing in premium curtain accessories that transform your living space into a masterpiece of design and comfort.'}
+                        {getVal('about_hero_subtitle', 'aboutSubtitle') || 'Specializing in premium curtain accessories that transform your living space into a masterpiece of design and comfort.'}
                     </p>
                 </div>
             </div>
@@ -60,16 +82,20 @@ const AboutPage = () => {
                 {/* Nuur Home â€” Kompaniya haqida (til almashganda avtomatik o'zgaradi) */}
                 <div className="grid md:grid-cols-2 gap-16 mb-24 items-center">
                     <div>
-                        <span className="text-secondary font-bold tracking-wider uppercase text-sm mb-2 block">Nuur Home Collection</span>
+                        <span className="text-secondary font-bold tracking-wider uppercase text-sm mb-2 block">
+                            {getVal('about_company_title') || 'Nuur Home Collection'}
+                        </span>
                         <p className="text-gray-700 leading-relaxed mb-6 text-lg">
-                            {t('aboutCompanyIntro')}
+                            {getVal('about_company_text') || t('aboutCompanyIntro')}
                         </p>
-                        <p className="text-gray-700 leading-relaxed mb-6 text-lg">
-                            {t('aboutCompanyPhilosophy')}
-                        </p>
-                        <p className="text-gray-700 leading-relaxed text-lg">
-                            {t('aboutCompanyMaterials')}
-                        </p>
+                        <div className="bg-primary/5 p-6 rounded-2xl border border-primary/10 mb-6">
+                            <h3 className="text-xl font-display font-bold text-gray-900 mb-2">
+                                {getVal('about_mission_title') || t('aboutMissionTitle') || 'Our Mission'}
+                            </h3>
+                            <p className="text-gray-700 leading-relaxed">
+                                {getVal('about_mission_text1') || t('aboutMissionText') || t('aboutCompanyPhilosophy')}
+                            </p>
+                        </div>
                     </div>
                     <MissionImageCarousel
                         urls={missionDisplayUrls}

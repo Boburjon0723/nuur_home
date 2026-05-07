@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../hooks/useApp';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { getAllProducts } from '../../services/supabase/products';
+import { getAllProducts } from '../../services/api/products';
 import ProductGrid from './ProductGrid';
 
 const RecentlyViewedProducts = () => {

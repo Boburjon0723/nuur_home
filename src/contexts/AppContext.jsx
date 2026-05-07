@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { getSettings } from '../services/supabase/settings';
-import { supabase, isPasswordRecoveryPending, markPasswordRecoveryPending } from '../supabaseClient';
+import { getSettings } from '../services/api/settings';
 import { mapAuthUserToAppUser } from '../utils/mapAuthUser';
 
 export const AppContext = createContext();
@@ -37,55 +36,15 @@ export const AppProvider = ({ children }) => {
         if (savedCart) setCart(JSON.parse(savedCart));
         if (savedFavorites) setFavorites(JSON.parse(savedFavorites));
 
-        // Get initial Supabase session
-        const getInitialSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                const user = mapAuthUserToAppUser(session.user);
-                setCurrentUser(user);
-                localStorage.setItem('user', JSON.stringify(user));
-                // Zaxira: ba’zi brauzer/holatlarda PASSWORD_RECOVERY hodisasi kechiksa ham hash da type=recovery bo‘ladi
-                if (typeof window !== 'undefined') {
-                    try {
-                        const hashParams = new URLSearchParams(
-                            (window.location.hash || '').replace(/^#/, '')
-                        );
-                        if (hashParams.get('type') === 'recovery') {
-                            setShowPasswordRecovery(true);
-                        }
-                    } catch {
-                        /* ignore */
-                    }
-                }
-            } else {
-                // If no session but we have something in localStorage, keep it for UI 
-                // but real auth actions might still fail. 
-                // Better to clear if no real session exists.
-                // const savedUser = localStorage.getItem('user');
-                // if (savedUser) setCurrentUser(JSON.parse(savedUser));
+        // Load user from localStorage
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            try {
+                setCurrentUser(JSON.parse(savedUser));
+            } catch (err) {
+                console.error('Failed to parse user from localStorage:', err);
             }
-        };
-
-        getInitialSession();
-
-        // Listen for Supabase auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'PASSWORD_RECOVERY' && session?.user) {
-                markPasswordRecoveryPending();
-                setShowPasswordRecovery(true);
-            }
-            if (event === 'SIGNED_IN' && session?.user && isPasswordRecoveryPending()) {
-                setShowPasswordRecovery(true);
-            }
-            if (session?.user) {
-                const user = mapAuthUserToAppUser(session.user);
-                setCurrentUser(user);
-                localStorage.setItem('user', JSON.stringify(user));
-            } else if (event === 'SIGNED_OUT') {
-                setCurrentUser(null);
-                localStorage.removeItem('user');
-            }
-        });
+        }
 
         const fetchSettings = async () => {
             const result = await getSettings();
@@ -94,8 +53,6 @@ export const AppProvider = ({ children }) => {
             }
         };
         fetchSettings();
-
-        return () => subscription.unsubscribe();
     }, []);
 
     // LocalStorage ga saqlash

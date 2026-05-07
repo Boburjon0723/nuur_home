@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { useApp } from '../../hooks/useApp';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { getAllCategories } from '../../services/supabase/categories';
+import { getAllCategories } from '../../services/api/categories';
 
 const Sidebar = () => {
     const { selectedCategory, setSelectedCategory } = useApp();

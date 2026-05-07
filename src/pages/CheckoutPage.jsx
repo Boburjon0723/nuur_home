@@ -4,11 +4,10 @@ import { useApp } from '../hooks/useApp';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import PageMeta from '../components/common/PageMeta';
-import { createOrder, uploadReceipt } from '../services/supabase/orders';
-import { getSettings } from '../services/supabase/settings';
+import { createOrder, uploadReceipt } from '../services/api/orders';
+import { getSettings } from '../services/api/settings';
 import { AUTH_RETURN_PATH_KEY } from '../constants/storageKeys';
 import { OTHER_VALUE, UZBEKISTAN_REGIONS, getCitiesForRegion } from '../data/uzbekistanDelivery';
-import { supabase } from '../supabaseClient';
 
 const countryCitiesFlat = {
     uzbekistan: ['tashkent', 'samarkand', 'bukhara', 'andijan', 'namangan', 'fergana', 'nukus', 'karshi'],
@@ -58,65 +57,15 @@ const CheckoutPage = () => {
 
     /** Sessiya kechiksa yoki ma'lumot `customers`da bo'lsa — formani to'ldirish (birinchi render bo'sh qolmasin) */
     useEffect(() => {
-        if (!currentUser?.id) {
-            setProfileCountryFromDb(null);
-            return;
-        }
-        setProfileCountryFromDb(null);
-        let cancelled = false;
-
-        const mergeFromProfile = (patch) => {
-            if (cancelled) return;
-            setFormData((prev) => ({
-                ...prev,
-                name: prev.name.trim() ? prev.name : (patch.name || ''),
-                phone: prev.phone.trim() ? prev.phone : (patch.phone || ''),
-                address: prev.address.trim() ? prev.address : (patch.address || ''),
-            }));
-        };
-
-        mergeFromProfile({
-            name: currentUser.name || '',
-            phone: currentUser.phone || '',
-            address: '',
-        });
-
-        (async () => {
-            try {
-                let data = null;
-                const selFull = 'name, phone, address, country';
-                const selBasic = 'name, phone, address';
-                const fetchCustomer = async (col, val) => {
-                    let r = await supabase.from('customers').select(selFull).eq(col, val).maybeSingle();
-                    if (r.error && /column|country|schema/i.test(String(r.error.message || ''))) {
-                        r = await supabase.from('customers').select(selBasic).eq(col, val).maybeSingle();
-                    }
-                    return r;
-                };
-                const byId = await fetchCustomer('id', currentUser.id);
-                if (!byId.error) data = byId.data;
-                if (!data && currentUser.email) {
-                    const byEmail = await fetchCustomer('email', currentUser.email);
-                    if (!byEmail.error) data = byEmail.data;
-                }
-                if (cancelled || !data) return;
-                if (data.country != null && String(data.country).trim() !== '') {
-                    setProfileCountryFromDb(String(data.country).trim().toLowerCase());
-                }
-                mergeFromProfile({
-                    name: data.name || currentUser.name || '',
-                    phone: data.phone || currentUser.phone || '',
-                    address: data.address || '',
-                });
-            } catch {
-                /* ignore */
-            }
-        })();
-
-        return () => {
-            cancelled = true;
-        };
-    }, [currentUser?.id, currentUser?.email, currentUser?.name, currentUser?.phone]);
+        if (!currentUser) return;
+        
+        setFormData(prev => ({
+            ...prev,
+            name: prev.name.trim() ? prev.name : (currentUser.fullname || currentUser.name || ''),
+            phone: prev.phone.trim() ? prev.phone : (currentUser.phone || ''),
+            address: prev.address.trim() ? prev.address : (currentUser.address || ''),
+        }));
+    }, [currentUser]);
 
     /** Admin uchun checkout ko‘rinmasin — savatdagi tezkor buyurtmaga yo‘naltiramiz */
     useEffect(() => {

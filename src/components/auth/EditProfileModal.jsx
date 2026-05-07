@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, User } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { updateUserProfile } from '../../services/supabase/auth';
+import { updateProfile } from '../../services/api/auth';
 
 const EditProfileModal = ({ user, onClose, onSuccess }) => {
     const { t } = useLanguage();
@@ -15,7 +15,10 @@ const EditProfileModal = ({ user, onClose, onSuccess }) => {
         setError('');
         setLoading(true);
         try {
-            const res = await updateUserProfile(name.trim(), phone.trim());
+            const res = await updateProfile({ 
+                fullname: name.trim(), 
+                phone: phone.trim() 
+            });
             if (res.success) {
                 onSuccess?.(res.user);
                 onClose();

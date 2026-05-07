@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { X, Lock, Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { updatePassword } from '../../services/supabase/auth';
-import { clearPasswordRecoveryPending } from '../../supabaseClient';
+import { changePassword } from '../../services/api/auth';
 
 const ChangePasswordModal = ({ variant = 'profile', onClose, onSuccess }) => {
     const { t } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -26,15 +27,8 @@ const ChangePasswordModal = ({ variant = 'profile', onClose, onSuccess }) => {
         }
         setLoading(true);
         try {
-            const res = await updatePassword(password);
+            const res = await changePassword(currentPassword, password);
             if (res.success) {
-                if (variant === 'recovery') {
-                    clearPasswordRecoveryPending();
-                    if (typeof window !== 'undefined' && window.history?.replaceState) {
-                        const { pathname, search } = window.location;
-                        window.history.replaceState(null, '', pathname + (search || ''));
-                    }
-                }
                 onSuccess?.();
                 onClose();
             } else {
@@ -58,7 +52,6 @@ const ChangePasswordModal = ({ variant = 'profile', onClose, onSuccess }) => {
                     <button
                         type="button"
                         onClick={() => {
-                            if (variant === 'recovery') clearPasswordRecoveryPending();
                             onClose();
                         }}
                         className="p-2 -m-2 rounded-full hover:bg-gray-100"
@@ -70,6 +63,28 @@ const ChangePasswordModal = ({ variant = 'profile', onClose, onSuccess }) => {
                     {error && <p className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{error}</p>}
                     {variant === 'recovery' && (
                         <p className="text-sm text-gray-600">{t('recoveryNewPasswordHint')}</p>
+                    )}
+                    {variant !== 'recovery' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">{t('currentPassword') || 'Amaldagi parol'}</label>
+                            <div className="relative">
+                                <input
+                                    type={showCurrentPassword ? 'text' : 'password'}
+                                    value={currentPassword}
+                                    onChange={(e) => setCurrentPassword(e.target.value)}
+                                    className="w-full pl-4 pr-12 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
+                                    placeholder={t('passwordPlaceholder')}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCurrentPassword((v) => !v)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-gray-500 hover:text-primary transition-colors"
+                                >
+                                    {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
                     )}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">{t('newPassword')}</label>
@@ -120,7 +135,6 @@ const ChangePasswordModal = ({ variant = 'profile', onClose, onSuccess }) => {
                         <button
                             type="button"
                             onClick={() => {
-                                if (variant === 'recovery') clearPasswordRecoveryPending();
                                 onClose();
                             }}
                             className="flex-1 py-3 border border-gray-200 rounded-xl font-bold text-gray-700 hover:bg-gray-50"

@@ -1,31 +1,9 @@
+// ==========================================
+// src/contexts/AuthContext.jsx - AUTH KONTEKST
+// ==========================================
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { normalizeRole, resolveUserRole } from '../utils/authRole';
 
 const AuthContext = createContext();
-
-function getAdminEmailSet() {
-    const raw = process.env.REACT_APP_ADMIN_EMAILS || '';
-    return new Set(
-        raw
-            .split(',')
-            .map((e) => e.trim().toLowerCase())
-            .filter(Boolean)
-    );
-}
-
-function userIsAdmin(user) {
-    const directRole = normalizeRole(
-        user?.user_metadata?.nuur_role ||
-        user?.user_metadata?.role ||
-        user?.app_metadata?.nuur_role ||
-        user?.app_metadata?.role
-    );
-    if (directRole === 'admin') return true;
-    const email = user?.email?.toLowerCase().trim();
-    if (!email) return false;
-    return getAdminEmailSet().has(email);
-}
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
@@ -34,38 +12,29 @@ export const AuthProvider = ({ children }) => {
     const [role, setRole] = useState('user');
 
     useEffect(() => {
-        // Get initial session
-        const getInitialSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            const currentUser = session?.user || null;
-            setUser(currentUser);
-            if (currentUser) {
-                const resolvedRole = await resolveUserRole(currentUser);
-                setRole(resolvedRole);
-                setIsAdmin(resolvedRole === 'admin' || userIsAdmin(currentUser));
+        // LocalStorage dan foydalanuvchini tekshirish
+        const checkAuth = () => {
+            const savedUser = localStorage.getItem('user');
+            const token = localStorage.getItem('auth_token');
+
+            if (savedUser && token) {
+                const parsedUser = JSON.parse(savedUser);
+                setUser(parsedUser);
+                setRole(parsedUser.role || 'user');
+                setIsAdmin(parsedUser.role === 'ADMIN');
             } else {
+                setUser(null);
                 setRole('user');
+                setIsAdmin(false);
             }
             setLoading(false);
         };
 
-        getInitialSession();
+        checkAuth();
 
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            const currentUser = session?.user || null;
-            setUser(currentUser);
-            if (currentUser) {
-                const resolvedRole = await resolveUserRole(currentUser);
-                setRole(resolvedRole);
-                setIsAdmin(resolvedRole === 'admin' || userIsAdmin(currentUser));
-            } else {
-                setRole('user');
-                setIsAdmin(false);
-            }
-        });
-
-        return () => subscription.unsubscribe();
+        // Storage o'zgarganda (masalan, logout bo'lganda) holatni yangilash
+        window.addEventListener('storage', checkAuth);
+        return () => window.removeEventListener('storage', checkAuth);
     }, []);
 
     const value = {
@@ -73,6 +42,9 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAdmin,
         role,
+        setUser,
+        setIsAdmin,
+        setRole
     };
 
     return (

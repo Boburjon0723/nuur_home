@@ -7,8 +7,8 @@ import { Heart, Package, Eye, ArrowLeft, ShoppingBag, ExternalLink, ChevronRight
 import { useApp } from '../hooks/useApp';
 import { useLanguage } from '../contexts/LanguageContext';
 import PageMeta from '../components/common/PageMeta';
-import { getUserOrders } from '../services/supabase/orders';
-import { getProductsByIds } from '../services/supabase/products';
+import { getUserOrders } from '../services/api/orders';
+import { getProductsByIds } from '../services/api/products';
 import ProductGrid from '../components/product/ProductGrid';
 import EditProfileModal from '../components/auth/EditProfileModal';
 import ChangePasswordModal from '../components/auth/ChangePasswordModal';

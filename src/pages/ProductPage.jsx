@@ -7,8 +7,8 @@ import PageMeta from '../components/common/PageMeta';
 import Breadcrumb from '../components/common/Breadcrumb';
 import ProductGallery from '../components/product/ProductGallery';
 import ThreeSixtyViewer from '../components/product/ThreeSixtyViewer';
-import { getAllColors, getProductById } from '../services/supabase/products';
-import { supabase } from '../supabaseClient';
+import { getAllColors, getProductById } from '../services/api/products';
+import { getProductReviews, addReview } from '../services/api/reviews';
 import { getShareableUrl } from '../utils/siteUrl';
 import { formatProductPriceDisplay } from '../utils/price';
 import { Box } from 'lucide-react';
@@ -143,18 +143,12 @@ const ProductPage = () => {
             return;
         }
         const idStr = String(pid);
-        const { data, error } = await supabase
-            .from('reviews')
-            .select('*')
-            .eq('product_id', idStr)
-            .eq('status', 'approved')
-            .order('created_at', { ascending: false });
-        if (error) {
-            console.error('[reviews] fetch', error);
+        const res = await getProductReviews(pid);
+        if (res.success) {
+            setReviews(res.reviews || []);
+        } else {
             setReviews([]);
-            return;
         }
-        setReviews(data || []);
     }, [selectedProduct?.id]);
 
     React.useEffect(() => {
@@ -213,19 +207,17 @@ const ProductPage = () => {
         }
 
         setSubmitStatus('submitting');
-        const { error } = await supabase.from('reviews').insert([
-            {
-                product_id: String(selectedProduct.id),
-                user_id: currentUser.id,
-                author_display_name: reviewerPublicName(currentUser),
-                rating: reviewForm.rating,
-                comment: reviewForm.comment,
-                status: 'approved' // Set to approved by default as requested
-            }
-        ]);
+        const res = await addReview({
+            product_id: String(selectedProduct.id),
+            user_id: currentUser.id,
+            author_display_name: reviewerPublicName(currentUser),
+            rating: reviewForm.rating,
+            comment: reviewForm.comment,
+            status: 'approved'
+        });
 
-        if (error) {
-            console.error('Supabase Review Insert Error:', error);
+        if (!res.success) {
+            console.error('Add Review Error:', res.error);
             setSubmitStatus('error');
             showNotification(t('error') || 'Xatolik yuz berdi', 'error');
         } else {
